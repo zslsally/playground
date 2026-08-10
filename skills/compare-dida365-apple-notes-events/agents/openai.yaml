@@ -1,0 +1,12 @@
+interface:
+  display_name: "Compare Dida365 and Notes"
+  short_description: "Compare activity schedules and suggest changes only"
+  default_prompt: "Use $compare-dida365-apple-notes-events to compare my Dida365 activities with Apple Notes and suggest updates without editing either source."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "dida365"
+      description: "Read dated activities from Dida365"
+      transport: "streamable_http"
+      url: "https://mcp.dida365.com"
