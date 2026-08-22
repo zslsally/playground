@@ -1,4 +1,4 @@
 interface:
   display_name: "Compare Maps & Notion Lists"
-  short_description: "Compare Google Maps and Notion place lists"
-  default_prompt: "Use $compare-maps-notion-lists to compare these Google Maps and Notion links and report every mismatch with Notion edit links."
+  short_description: "Audit travel sources and country summaries"
+  default_prompt: "Use $compare-maps-notion-lists to audit these Maps and Notion travel records, including any supplied country summary, and link every suggested Notion fix."

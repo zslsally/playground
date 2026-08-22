@@ -1,34 +1,32 @@
 ---
 name: compare-maps-notion-lists
-description: Compare a Google Maps saved/shared place-list URL with a Notion page or database URL. Use when the user supplies both links and wants count checks, missing or extra places, duplicate names, renamed places, abbreviations, or other list inconsistencies, with direct Notion edit links for every reported difference.
+description: Audit Google Maps and Notion travel records without editing either source, including country-summary relations and rollups when supplied. Use for missing or extra places, duplicates, stale counts, spelling, aliases, renamed places, canonical labels, and summary consistency. Link every finding to Notion. Do not generate map data or publish visualizations.
 ---
 
-# Compare Google Maps and Notion Place Lists
+# Audit Travel Lists
 
-Perform a read-only, item-by-item comparison. Do not edit either list unless asked.
+Limit this skill to source correctness. Leave map generation and publishing to `$visualize-travel-country-map`.
+
+## Boundaries
+
+- Read Google Maps and Notion without editing either source; provide suggestions only.
+- Audit membership, names, duplicates, and counts. Never create visualization CSVs, inspect Datawrapper, or publish a map.
+- Treat original travel records as audit evidence; never use a country summary as a substitute for inspecting the requested source lists.
+- Never merge an uncertain match or silently choose a canonical label.
 
 ## Workflow
 
-1. Read Notion through the Notion connector. If the URL is a database/view, query the relevant region/group, then fetch every included state or child page.
-2. Record both Notion property totals and the actual numbered place entries. Report stale per-page counts even when errors cancel in the aggregate.
-3. Read Google Maps through the browser workflow when no Maps connector exists. Record the header count, scroll until all place cards are loaded, and preserve duplicate cards.
-4. Compare as multisets, not sets. Two identical displayed names may represent different cities or addresses.
-5. Normalize conservatively: case, punctuation, apostrophes, accents, and obvious notes. Use city/state/address and surrounding context to recognize abbreviations, renames, and `parent area: child place` forms. Do not silently merge uncertain matches.
-6. Classify findings as:
-   - only in Notion;
-   - only in Maps;
-   - same place, different name or abbreviation;
-   - duplicate or ambiguous name;
-   - Notion count inconsistent with its body.
+1. Read every relevant Notion row or page. If a Maps URL is present, load every place card, including duplicates.
+2. Capture declared totals, actual items, and exact names while preserving duplicates.
+3. Ignore harmless formatting for comparison, then compare as multisets. Keep uncertain matches separate.
+4. If a country-summary database is supplied, verify after the source audit that each country has one row, `Country` and `ISO3` are correct and unique, source records are related to the correct country exactly once, and rendered `City` equals the audited source total. If a formula is returned as `formulaResult://`, read its rendered table value instead.
+5. Classify missing or extra items, duplicates, stale counts, spelling, aliases, renamed places, noncanonical labels, and summary mismatches.
 
-## Output
+## Report
 
-Lead with both raw counts and whether the memberships truly match. Then provide a compact table with `Type`, `Google Maps`, `Notion`, `Suggested change`, and `Edit in Notion`.
-
-Every discrepancy must include a clickable Notion link:
-
-- For Notion-only or naming differences, link the exact source page/row.
-- For Maps-only places, link the most relevant state/city Notion page where the place should be added.
-- If no destination page can be determined, link the supplied Notion database/view and say that placement is uncertain.
-
-Mention harmless naming variants separately from true membership differences. Also state duplicate-card counts when Google Maps' total differs from its unique displayed-name count.
+- Lead with raw counts and whether membership and names match.
+- Use `Type | Maps | Notion | Suggestion | Edit in Notion`; use `—` for a Notion-only audit.
+- Link every finding to the exact Notion row or page. For Maps-only items, link the best destination page or the supplied database when placement is uncertain.
+- For a summary mismatch, link both the affected country-summary row and the source row that explains the difference.
+- Separate harmless variants and ambiguities from real differences. When Maps is present, state its header count and unique-card count.
+- End with one optional handoff. If the audit is clean, ask: `对比已完成。要不要现在运行 $visualize-travel-country-map 更新国家地图？` If fixes remain, ask the same question for after the user applies them. Never run the visualization without confirmation.
