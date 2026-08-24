@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kindle HTML 转 Obsidian"
+  short_description: "将 Kindle Notebook HTML 转成可用于 MarkMind 的 Obsidian 笔记"
+  default_prompt: "使用 $convert-kindle-notebook 将这个 Kindle Notebook HTML 转成 Obsidian/MarkMind 笔记。"
