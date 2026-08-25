@@ -1,2 +1,5 @@
 .DS_Store
 .codex_backups
+config.local.json
+__pycache__/
+*.py[cod]

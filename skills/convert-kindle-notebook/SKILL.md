@@ -5,7 +5,7 @@ description: Convert Kindle Notebook HTML exports into Obsidian Markdown notes t
 
 # Convert Kindle Notebook
 
-Run `scripts/convert_kindle_notebook.py`, resolved relative to this file. Use absolute paths.
+Run `scripts/convert_kindle_notebook.py`, resolved relative to this file. Personal defaults live in the ignored `config.local.json`; copy `config.example.json` first if it is missing. Use absolute input paths.
 
 ## Convert
 
@@ -31,7 +31,7 @@ python3 scripts/convert_kindle_notebook.py "/absolute/path/Book - Notebook.html"
 
 ## Output contract
 
-- Default to `~/Documents/Obsidian Vault/文学/<book title>.md`; use the Kindle title as the `title` property and MarkMind root:
+- Default to the configured `output_dir`; use the Kindle title as the `title` property and MarkMind root:
 
 ```yaml
 ---

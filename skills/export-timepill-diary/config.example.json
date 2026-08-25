@@ -1,0 +1,13 @@
+{
+  "account": "you@example.com",
+  "output": "~/Documents/timepill",
+  "page_size": 500,
+  "api_delay_seconds": 0.5,
+  "request_timeout_seconds": 20.0,
+  "retries": 3,
+  "export_comments": true,
+  "export_media": true,
+  "media_workers": 4,
+  "max_media_bytes": 52428800,
+  "append_overlap_days": 1
+}

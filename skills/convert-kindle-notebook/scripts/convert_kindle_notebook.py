@@ -15,8 +15,29 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 
-DEFAULT_OUTPUT_DIR = Path("~/Documents/Obsidian Vault/文学")
-DEFAULT_TAG_VAULT = Path("~/Documents/Obsidian Vault")
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "config.local.json"
+CONFIG_KEYS = {"output_dir", "tag_vault", "mail_inbox", "mail_sender", "mail_recipient"}
+
+
+def load_config(path: Path) -> dict[str, str]:
+    try:
+        config = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"Missing {path}; copy config.example.json to config.local.json"
+        ) from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Cannot read config {path}: {exc}") from exc
+    if not isinstance(config, dict) or set(config) != CONFIG_KEYS:
+        raise ValueError(f"Config must contain exactly: {sorted(CONFIG_KEYS)}")
+    if any(not isinstance(value, str) or not value.strip() for value in config.values()):
+        raise ValueError("All config values must be non-empty strings")
+    return config
+
+
+CONFIG = load_config(CONFIG_PATH)
+DEFAULT_OUTPUT_DIR = Path(CONFIG["output_dir"]).expanduser()
+DEFAULT_TAG_VAULT = Path(CONFIG["tag_vault"]).expanduser()
 CAPTURE_CLASSES = {
     "bookTitle",
     "authors",

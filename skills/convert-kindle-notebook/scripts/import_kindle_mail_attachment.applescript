@@ -1,7 +1,3 @@
-property converterPath : "~/.codex/skills/convert-kindle-notebook/scripts/convert_kindle_notebook.py"
-property inboxRoot : "~/Documents/Kindle Notebook Inbox"
-property expectedSender : "sender@example.com"
-property expectedRecipient : "recipient@example.com"
 property subjectMarker : "iPhone 笔记本"
 property attachmentSuffix : " - Notebook.html"
 
@@ -18,6 +14,13 @@ on run
 end run
 
 on processMessages(theMessages)
+	set homeRoot to do shell script "/usr/bin/printenv HOME"
+	set skillRoot to homeRoot & "/.codex/skills/convert-kindle-notebook"
+	set converterPath to skillRoot & "/scripts/convert_kindle_notebook.py"
+	set configPath to skillRoot & "/config.local.json"
+	set inboxRoot to my expandHome(homeRoot, my configValue(configPath, "mail_inbox"))
+	set expectedSender to my configValue(configPath, "mail_sender")
+	set expectedRecipient to my configValue(configPath, "mail_recipient")
 	set incomingFolder to inboxRoot & "/incoming"
 	set processedFolder to inboxRoot & "/processed"
 	set failedFolder to inboxRoot & "/failed"
@@ -71,6 +74,15 @@ on processMessages(theMessages)
 		end if
 	end repeat
 end processMessages
+
+on configValue(configPath, configKey)
+	return do shell script "/usr/bin/plutil -extract " & quoted form of configKey & " raw -o - " & quoted form of configPath
+end configValue
+
+on expandHome(homeRoot, pathText)
+	if pathText begins with "~/" then return homeRoot & "/" & (text 3 thru -1 of pathText)
+	return pathText
+end expandHome
 
 on endsWith(theText, theSuffix)
 	if (count of theText) < (count of theSuffix) then return false
