@@ -1,4 +1,0 @@
-interface:
-  display_name: "Visualize Travel Country Map"
-  short_description: "Publish audited country summaries to Datawrapper"
-  default_prompt: "Use $visualize-travel-country-map to refresh my Datawrapper travel map from my read-only Notion country-summary database."

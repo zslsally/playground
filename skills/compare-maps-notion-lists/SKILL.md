@@ -5,7 +5,7 @@ description: Audit Google Maps and Notion travel records without editing either 
 
 # Audit Travel Lists
 
-Limit this skill to source correctness. Leave map generation and publishing to `$visualize-travel-country-map`.
+Limit this skill to source correctness. Leave map generation and publishing to `$visualize-travel-map`.
 
 ## Boundaries
 
@@ -29,4 +29,4 @@ Limit this skill to source correctness. Leave map generation and publishing to `
 - Link every finding to the exact Notion row or page. For Maps-only items, link the best destination page or the supplied database when placement is uncertain.
 - For a summary mismatch, link both the affected country-summary row and the source row that explains the difference.
 - Separate harmless variants and ambiguities from real differences. When Maps is present, state its header count and unique-card count.
-- End with one optional handoff. If the audit is clean, ask: `对比已完成。要不要现在运行 $visualize-travel-country-map 更新国家地图？` If fixes remain, ask the same question for after the user applies them. Never run the visualization without confirmation.
+- End with one optional handoff. If the audit is clean, ask: `对比已完成。要不要现在运行 $visualize-travel-map 更新旅行地图？` If fixes remain, ask the same question for after the user applies them. Never run the visualization without confirmation.

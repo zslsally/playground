@@ -1,0 +1,36 @@
+{
+  "sources": {
+    "world": {
+      "page_url": "REPLACE_WITH_WORLD_NOTION_PAGE_URL",
+      "data_source_url": "collection://REPLACE_WITH_WORLD_COUNTRY_SUMMARY"
+    },
+    "china": {
+      "view_url": "REPLACE_WITH_NOTION_CHINA_VIEW_URL",
+      "data_source_url": "collection://REPLACE_WITH_CHINA_DATA_SOURCE"
+    },
+    "us": {
+      "view_url": "REPLACE_WITH_NOTION_US_VIEW_URL",
+      "data_source_url": "collection://REPLACE_WITH_US_DATA_SOURCE"
+    }
+  },
+  "charts": {
+    "world": {
+      "id": null,
+      "basemap": null,
+      "map_key_attr": null,
+      "ignored_keys": []
+    },
+    "china": {
+      "id": null,
+      "basemap": null,
+      "map_key_attr": null,
+      "ignored_keys": []
+    },
+    "us": {
+      "id": null,
+      "basemap": null,
+      "map_key_attr": null,
+      "ignored_keys": []
+    }
+  }
+}

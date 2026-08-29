@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visualize Travel Maps"
+  short_description: "Refresh three Notion-based travel maps"
+  default_prompt: "Use $visualize-travel-map to refresh my three existing Datawrapper maps from their read-only Notion sources."
