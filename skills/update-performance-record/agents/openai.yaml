@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update Performance Record"
+  short_description: "按时间范围只读苹果日历，仅新增 Notion 演出记录，支持城市 override"
+  default_prompt: "使用 $update-performance-record 只读苹果日历，仅向指定 Notion 表格新增明确的演出记录，排除 missed，保留已有记录和表格结构；完成后列出 1. 已更新条目；2. 需要用户确认的地方。"
