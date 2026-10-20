@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notion 笔记备份"
+  short_description: "API 作为 Notion 日常备份主方案，官方导出定期补充，保留并校验独立快照"
+  default_prompt: "使用 $backup-notion 通过 API 备份我的 Notion 笔记，返回快照位置、校验结果和覆盖范围异常。"

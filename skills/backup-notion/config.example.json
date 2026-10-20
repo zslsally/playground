@@ -1,0 +1,32 @@
+{
+  "workspace": {
+    "name": "My workspace",
+    "id": ""
+  },
+  "scope": "All workspace content accessible to the exporting account",
+  "format": "markdown",
+  "destination": "~/Documents/Notion Backups/My workspace",
+  "search_dirs": [
+    "~/Desktop",
+    "~/Downloads"
+  ],
+  "patterns": [
+    "*_Export-*.zip",
+    "Export-*.zip"
+  ],
+  "python": "",
+  "baseline_snapshot": "",
+  "settle_seconds": 5,
+  "api": {
+    "destination": "~/Documents/Notion Backups/My workspace/API",
+    "version": "2026-03-11",
+    "token_env": "NOTION_BACKUP_TOKEN",
+    "keychain_service": "codex-notion-backup",
+    "keychain_account": "notion-backup",
+    "roots": [],
+    "discover_search": true,
+    "comments": "page",
+    "max_attachment_bytes": 536870912,
+    "database_pages": "links"
+  }
+}

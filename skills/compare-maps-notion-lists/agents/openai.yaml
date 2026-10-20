@@ -1,4 +1,4 @@
 interface:
   display_name: "Compare Maps & Notion Lists"
   short_description: "Audit travel sources and country summaries"
-  default_prompt: "Use $compare-maps-notion-lists to audit these Maps and Notion travel records, including any supplied country summary, and link every suggested Notion fix."
+  default_prompt: "Use $compare-maps-notion-lists to audit these Notion travel records using their Source links unless I supply a Maps list, and link every suggested fix."

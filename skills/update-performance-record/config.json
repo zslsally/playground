@@ -1,6 +1,9 @@
 {
   "city_overrides": {
     "Newark": "New York",
-    "Harrison": "New York"
+    "Harrison": "New York",
+    "East Rutherford": "New York",
+    "Atlantic City": "New York",
+    "Foxborough": "Boston"
   }
 }
