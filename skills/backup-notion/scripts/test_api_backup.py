@@ -178,23 +178,24 @@ class SnapshotTests(unittest.TestCase):
         client = Library()
         backup, result = self.run_backup(client)
         self.assertEqual(result['status'], 'archived')
-        self.assertEqual(result['pages'], 1)
-        self.assertEqual(result['link_only_pages'], 2)
-        self.assertEqual(result['link_only_descendants'], 1)
+        self.assertEqual(result['pages'], 3)
+        self.assertEqual(result['link_only_pages'], 1)
+        self.assertEqual(result['link_only_descendants'], 0)
         for _, path, params in client.calls:
-            self.assertFalse(any(ident in path for ident in (B, c, f)))
-            self.assertFalse(path == '/comments' and params['block_id'] in (B, c, f))
+            self.assertFalse(any(ident in path for ident in (B,)))
+            self.assertFalse(path == '/comments' and params['block_id'] in (B,))
         links = json.loads((backup.snapshot / 'links.json').read_text())
-        self.assertTrue(links['descendant_links'][0]['notion_url'].endswith(f))
-        no_original = next(item for item in links['pages'] if item['id'] == c)
-        self.assertEqual(no_original['original_urls'], {})
-        self.assertTrue(no_original['notion_url'].endswith(c))
+        self.assertEqual(len(links['pages']), 1)
+        self.assertEqual(set(links['pages'][0]), {'id', 'urls'})
+        self.assertEqual(links['pages'][0]['urls'], {'URL': 'https://example.com/original'})
+        self.assertTrue(any(path == '/pages/' + c + '/markdown' for _, path, _ in client.calls))
+        self.assertTrue(any(path == '/pages/' + f + '/markdown' for _, path, _ in client.calls))
         self.assertEqual(len(list((backup.snapshot / 'assets').iterdir())), 1)
         self.assertEqual(verify(backup.snapshot)['status'], 'verified')
         known = json.loads((backup.snapshot / 'manifest.json').read_text())['known_entities']
         self.assertIn(['page', B], known)
         self.assertIn(['page', c], known)
-        self.assertEqual(destination_for(self.cfg).name, 'database-links')
+        self.assertEqual(destination_for(self.cfg).name, 'database-links-v2')
 
     def test_link_state_survives_pause_resume_and_modes_have_distinct_series(self):
         from api_backup import series
@@ -206,7 +207,7 @@ class SnapshotTests(unittest.TestCase):
         backup.pause_requested = True
         self.assertEqual(backup.run()['status'], 'paused')
         resumed = Backup(self.cfg, FakeClient(), self.root / 'out', assets_factory=self.assets, resume=backup.snapshot)
-        self.assertIn(B, resumed.link_pages)
+        self.assertNotIn(B, resumed.link_pages)
         resumed.assets.close()
         links_series = series(self.cfg)
         self.cfg['api']['database_pages'] = 'full'
@@ -229,14 +230,15 @@ class SnapshotTests(unittest.TestCase):
         self.cfg['api']['database_pages'] = 'links'
         backup, result = self.run_backup(UnindexedParent())
         self.assertEqual(result['status'], 'archived')
-        self.assertEqual(result['pages'], 1)
-        self.assertEqual(result['link_only_descendants'], 1)
-        self.assertFalse(any(path in ('/pages/' + f + '/markdown', '/blocks/' + f + '/children')
-                             for _, path, _ in backup.client.calls))
+        self.assertEqual(result['pages'], 3)
+        self.assertEqual(result['link_only_descendants'], 0)
+        self.assertTrue(any(path == '/pages/' + f + '/markdown' for _, path, _ in backup.client.calls))
         self.assertEqual(len(list((backup.snapshot / 'assets').iterdir())), 1)
 
     def assets(self, store, snapshot, max_bytes):
-        return Assets(store, snapshot, max_bytes, opener=Opener(Response(b'photo-data', {'Content-Type': 'image/png'})), workers=1)
+        return Assets(store, snapshot, max_bytes,
+                      opener=Opener(*[Response(b'photo-data', {'Content-Type': 'image/png'})
+                                      for _ in range(20)]), workers=1)
 
     def paused_backup(self, abrupt=False):
         class Interrupted(FakeClient):

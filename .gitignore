@@ -3,3 +3,7 @@
 config.local.json
 __pycache__/
 *.py[cod]
+
+# Still in progress
+game-automation/
+skills/plan-travel-itinerary/

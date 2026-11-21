@@ -83,13 +83,13 @@ def series(cfg):
                 'discover_search': api.get('discover_search', True),
                 'backup_policy': 'daily_incremental_audit_v1'}
     if api.get('database_pages', 'links') == 'links':
-        identity['database_pages'] = 'links_v1'
+        identity['database_pages'] = 'url_only_or_full_v2'
     return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
 
 
 def destination_for(cfg):
     base = Path(cfg['api']['destination']).expanduser().resolve()
-    return base / 'database-links' if cfg['api'].get('database_pages', 'links') == 'links' else base
+    return base / 'database-links-v2' if cfg['api'].get('database_pages', 'links') == 'links' else base
 
 
 @contextmanager
@@ -230,42 +230,10 @@ class Backup:
         urls = {name: value['url'] for name, value in obj.get('properties', {}).items()
                 if value.get('type') == 'url' and isinstance(value.get('url'), str)
                 and urlsplit(value['url']).scheme in ('http', 'https')}
-        self.link_pages[ident] = {'id': ident, 'title': title_of(obj), 'original_urls': urls,
-                                 'notion_url': obj.get('url') or 'https://www.notion.so/' + ident,
-                                 'parent_id': uid(source), 'properties': obj.get('properties', {}),
-                                 'mode': 'links_only', 'property_values': 'inline_not_paginated'}
+        if not urls:
+            return
+        self.link_pages[ident] = {'id': ident, 'urls': urls}
         self.completed.add(('page', ident))
-
-    def link_root(self, ident):
-        seen = set()
-        while ident not in seen:
-            if ident in self.link_pages:
-                return ident
-            seen.add(ident)
-            parent = self.page_parents.get(ident, {})
-            if parent.get('type') != 'page_id' or not parent.get('page_id'):
-                return None
-            ident = uid(parent['page_id'])
-        return None
-
-    def resolve_link_root(self, ident):
-        if self.database_pages != 'links':
-            return None
-        current, seen = ident, set()
-        while current not in seen:
-            if current in self.link_pages:
-                return current
-            seen.add(current)
-            parent = self.page_parents.get(current, {})
-            if parent.get('type') != 'page_id' or not parent.get('page_id'):
-                return None
-            current = uid(parent['page_id'])
-            if current not in self.page_parents:
-                # A descendant can appear in search even when its database row does not.
-                obj = self.get('/pages/' + current)
-                if current in self.link_pages:
-                    self.discover(obj)
-        return None
 
     def attachment_payload(self, value):
         if isinstance(value, list):
@@ -273,7 +241,7 @@ class Backup:
         if isinstance(value, dict):
             if value.get('object') in ('database', 'data_source'):
                 return None
-            if value.get('object') == 'page' and self.link_root(uid(value['id'])):
+            if value.get('object') == 'page' and uid(value['id']) in self.link_pages:
                 return None
             return {key: self.attachment_payload(item) for key, item in value.items()}
         return value
@@ -281,7 +249,7 @@ class Backup:
     def discard_link_queue(self):
         retained = deque()
         for kind, ident in self.queue:
-            root = self.link_root(ident) if kind == 'page' else None
+            root = ident if kind == 'page' and ident in self.link_pages else None
             if root:
                 self.completed.add((kind, ident))
                 if root != ident:
@@ -399,12 +367,8 @@ class Backup:
         kind = obj.get('object')
         self.remember_page(obj)
         if kind in ('page', 'database', 'data_source'):
-            if kind != 'page' or not self.link_root(uid(obj['id'])):
+            if kind != 'page' or uid(obj['id']) not in self.link_pages:
                 self.enqueue(kind, obj['id'])
-            elif uid(obj['id']) not in self.link_pages:
-                ident = uid(obj['id'])
-                self.link_descendants[ident] = self.link_root(ident)
-                self.completed.add(('page', ident))
         parent = obj.get('parent', {})
         # A database returned by search may expose multiple data sources.
         if parent.get('type') == 'database_id':
@@ -453,19 +417,13 @@ class Backup:
                 self.comments(ident)
 
     def page(self, ident):
-        root = self.link_root(ident)
-        if root:
-            if root != ident:
-                self.link_descendants[ident] = root
+        if ident in self.link_pages:
             return
         candidate = self.page_candidates.get(ident)
         page = (candidate if candidate and isinstance(candidate.get('properties'), dict)
                 and isinstance(candidate.get('last_edited_time'), str)
                 else self.get('/pages/' + ident))
-        root = self.resolve_link_root(ident)
-        if root:
-            if root != ident:
-                self.link_descendants[ident] = root
+        if ident in self.link_pages:
             return
         if self.database_pages == 'links':
             self.assets.collect(page)
@@ -538,8 +496,12 @@ class Backup:
             for page in self.each('POST', '/data_sources/' + ident + '/query'):
                 self.discover(page)
                 # Properties remain lossless JSON. Full paginated values are in raw/.
+                properties = page.get('properties', {})
+                if uid(page['id']) in self.link_pages:
+                    properties = {name: value for name, value in properties.items()
+                                  if value.get('type') == 'url' and isinstance(value.get('url'), str)}
                 writer.writerow([page['id'], title_of(page),
-                                 json.dumps(page.get('properties', {}), ensure_ascii=False)])
+                                 json.dumps(properties, ensure_ascii=False)])
                 count += 1
         if count >= 10000:
             self.fail('data_source_query_limit_requires_partitioning', ident)
@@ -622,14 +584,13 @@ class Backup:
         if missing:
             self.fail('prior_entities_not_fully_read')
         status = 'partial' if self.errors else ('archived_with_warnings' if self.warnings else 'archived')
-        index = self.index + [{'type': 'page', 'id': ident, 'title': item['title'],
-                               'mode': 'links_only', 'file': 'links.json'}
-                              for ident, item in sorted(self.link_pages.items())]
+        index = self.index + [{'type': 'page', 'id': ident,
+                               'mode': 'url_only', 'file': 'links.json'}
+                              for ident in sorted(self.link_pages)]
         if self.database_pages == 'links':
             write_json(self.snapshot / 'links.json', {'pages': list(self.link_pages.values()),
                        'descendants_covered_by_parent_link': self.link_descendants,
-                       'descendant_links': [{'id': ident, 'notion_url': 'https://www.notion.so/' + ident,
-                                             'parent_link_page_id': parent}
+                       'descendant_links': [{'id': ident, 'parent_link_page_id': parent}
                                             for ident, parent in sorted(self.link_descendants.items())]})
         write_json(self.snapshot / 'index.json', index)
         write_json(self.snapshot / 'report.json', {
@@ -641,7 +602,7 @@ class Backup:
                          'consistency_check': self.consistency_check,
                          'database_pages': self.database_pages,
                          'link_only_pages': len(self.link_pages),
-                         'link_only_omissions': 'Database row bodies, comments, property pagination and attachment bytes; rows without external URLs retain Notion links' if self.database_pages == 'links' else None,
+                         'link_only_omissions': 'URL-bearing database row bodies, comments, property pagination and attachment bytes; rows without URLs receive full page backup' if self.database_pages == 'links' else None,
                          'external_files': 'URLs only', 'workspace_completeness': 'not established',
                          'restore': 'not a full-fidelity workspace restore', 'transactional': False}})
         files = {}

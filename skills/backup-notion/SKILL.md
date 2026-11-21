@@ -5,7 +5,7 @@ description: Back up Notion with the read-only API as the daily primary workflow
 
 # Notion backup
 
-API is the daily primary workflow; official exports are periodic supplements. Default daily mode incrementally backs up ordinary pages and keeps database schemas/rows as properties and links. Database rows and descendants do not get body/comment reads or attachment downloads. This is structural, not authorship detection; self-written database notes follow it too.
+API is the daily primary workflow; official exports are periodic supplements. Default daily mode incrementally backs up ordinary pages. In a database, a row with a valid URL property is URL-only; a row without a valid URL receives a full page backup. This is structural, not authorship detection; self-written database notes without URLs are retained fully.
 
 ```bash
 python3 scripts/api_backup.py run
@@ -17,7 +17,7 @@ python3 scripts/api_backup.py run --database-pages full
 
 Resolve paths relative to this skill. Python 3.9+, no packages or model calls. Credentials stay local. Daily mode compares current `last_edited_time` with the latest verified success: unchanged ordinary pages reuse verified raw responses, Markdown and hardlinked assets; changed/new pages are fully read. It skips comments and the second metadata read. Missing/corrupt reuse inputs fall back to a fresh read. With no reusable baseline, the first daily run reads all ordinary pages.
 
-Audit mode never reuses page content. It rereads ordinary page blocks/assets, configured page comments, and metadata after content to detect concurrent edits. Run audits periodically; timestamps may not expose every descendant-side change. Both modes verify independent snapshots and checkpoint entities. Default database rows use batch queries. `API/database-links/` holds link-only-database history; explicit database-full mode uses `API/`. Resume automatically preserves the snapshot's mode.
+Audit mode never reuses page content. It rereads ordinary pages and database rows without URLs, plus configured page comments and metadata after content; URL-bearing database rows remain URL-only unless `--database-pages full` is requested. Run audits periodically; timestamps may not expose every descendant-side change. Both modes verify independent snapshots and checkpoint entities. `API/database-links-v2/` holds the URL-only-or-full database history; explicit database-full mode uses `API/`. Resume automatically preserves the snapshot's mode.
 
 Launch once and wait. Use `progress /absolute/snapshot` only when needed. Do not repeatedly scan raw files, load scripts/docs, or reissue `run` during normal execution.
 

@@ -2,6 +2,7 @@
 
 ## Personal Skills (Codex)
 
+- [`plan-travel-itinerary`](skills/plan-travel-itinerary/SKILL.md) — 按个人偏好与同行人需求规划可执行行程，核实官网班次、比较预订平台并估算总预算。
 - [`update-performance-record`](skills/update-performance-record/SKILL.md) — 根据苹果日历补充 Notion 演出记录。
 - [`compare-dida365-apple-notes-events`](skills/compare-dida365-apple-notes-events/SKILL.md) — 只读核对滴答清单与 Apple Notes 中的活动安排。
 - [`compare-maps-notion-lists`](skills/compare-maps-notion-lists/SKILL.md) — 默认读取 Notion Source 链接，审核景点、层级及汇总；已有页面只给建议，缺失页经授权建立，合并建议保留原备注并可直接粘贴。
